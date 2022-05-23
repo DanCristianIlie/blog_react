@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { Container, Row, Col, Button } from "reactstrap";
 import { useState, useEffect } from "react";
+import { addToWishlist } from "../helpers";
 import Footer from "../common/Footer";
 import "./Blog.css";
 
@@ -8,6 +9,7 @@ function Blog() {
 	const params = useParams();
 	const [post, setPost] = useState(null);
 	const [user, setUser] = useState(null);
+	const [comments, setComments] = useState(null);
 
 	const getBlog = async (blogId) => {
 		const responseData = await fetch(
@@ -25,6 +27,14 @@ function Blog() {
 		setUser(apiUser);
 	};
 
+	const getComments = async (postId) => {
+		const responseData = await fetch(
+			"https://jsonplaceholder.typicode.com/comments?postId=" + postId
+		);
+		const apiComments = await responseData.json();
+		setComments(apiComments);
+	};
+
 	useEffect(() => {
 		if (params && params.blogId) {
 			getBlog(params.blogId);
@@ -34,6 +44,9 @@ function Blog() {
 	useEffect(() => {
 		if (post && post.userId) {
 			getUser(post.userId);
+		}
+		if (post && post.id) {
+			getComments(post.id);
 		}
 	}, [post]);
 
@@ -51,7 +64,13 @@ function Blog() {
 						<Row>
 							<h1>{post.title}</h1>
 							<h3 style={{ minHeight: "500px" }}>{post.body}</h3>
-							<Button className='mt-4 mb-4'>Add to wishlist!</Button>
+							<Button
+								className='mt-4 mb-4'
+								onClick={() => {
+									addToWishlist(post);
+								}}>
+								Add to wishlist!
+							</Button>
 						</Row>
 						<Row>
 							<div className='author_container mt-4'>
@@ -67,6 +86,21 @@ function Blog() {
 					</>
 				) : (
 					<div>Loading...</div>
+				)}
+				{comments && (
+					<>
+						<h2 className='mt-4'>Comments:</h2>
+						{comments.map((comment) => {
+							return (
+								<Row className='mt-2 p-2'>
+									<h4>
+										{comment.name} -- {comment.email}
+									</h4>
+									<p>{comment.body}</p>
+								</Row>
+							);
+						})}
+					</>
 				)}
 			</Container>
 			<Footer />
